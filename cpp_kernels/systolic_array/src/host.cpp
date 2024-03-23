@@ -28,10 +28,10 @@ Description:
 #include <vector>
 
 // Array Size to access
-#define DATA_SIZE 16
+#define DATA_SIZE 1280
 
 // Maximum Array Size
-#define MAX_SIZE 16
+#define MAX_SIZE 1536
 
 // Software implementation of Matrix Multiplication
 // The inputs are of the size (DATA_SIZE x DATA_SIZE)
@@ -49,6 +49,29 @@ void m_softwareGold(std::vector<int, aligned_allocator<int> >& in1, // Input Mat
     }
 }
 
+//Function to read matrix from test file (ask if it works)
+std::vector<std::vector<float>> readMatrixFromFile(const std::string& filePath) {
+	std::ifstream file(filePath);
+	std::vector<std::vector<float>> matrix;
+	float value;
+
+	if (file.is_open()) {
+    	while (!file.eof()) {
+        	std::vector<float> row;
+        	while (file >> value) {
+            	row.push_back(value);
+        	}
+        	matrix.push_back(row);
+    	}
+    	file.close();
+	} else {
+    	std::cerr << "Error opening file: " << filePath << std::endl;
+	}
+
+	return matrix;
+}
+
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         std::cout << "Usage: " << argv[0] << " <XCLBIN File>" << std::endl;
@@ -65,22 +88,34 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    size_t matrix_size = DATA_SIZE * DATA_SIZE;
+    size_t matrix_size1 = DATA_SIZE * DATA_SIZE;
+    size_t matrix_size2 = DATA_SIZE * MAX_SIZE;
     size_t matrix_size_bytes = sizeof(int) * matrix_size;
     cl_int err;
     cl::CommandQueue q;
     cl::Context context;
     cl::Kernel krnl_systolic_array;
 
-    std::vector<int, aligned_allocator<int> > source_in1(matrix_size);
-    std::vector<int, aligned_allocator<int> > source_in2(matrix_size);
-    std::vector<int, aligned_allocator<int> > source_hw_results(matrix_size);
-    std::vector<int, aligned_allocator<int> > source_sw_results(matrix_size);
+    //Read matrices from file
+	std::vector<std::vector<float>> matrix1 = readMatrixFromFile("matrix1.txt");
+	std::vector<std::vector<float>> matrix2 = readMatrixFromFile("matrix2.txt");
 
-    // Create the test data and Software Result
-    for (size_t i = 0; i < matrix_size; i++) {
-        source_in1[i] = i % 10;
-        source_in2[i] = i % 10;
+    std::vector<int, aligned_allocator<int> > source_in1(matrix_size1);
+    std::vector<int, aligned_allocator<int> > source_in2(matrix_size2);
+    std::vector<int, aligned_allocator<int> > source_hw_results(matrix_size2);
+    std::vector<int, aligned_allocator<int> > source_sw_results(matrix_size2);
+
+    //Create the test data
+    for (size_t i = 0; i < matrix1.size(); ++i) {
+    	for (size_t j = 0; j < matrix1[0].size(); ++j) {
+        	source_in1[i * matrix1[0].size() + j] = static_cast<int>(matrix1[i][j]);
+        	source_in2[i * matrix2[0].size() + j] = static_cast<int>(matrix2[i][j]);
+    	}
+	}
+
+
+    // Create the software result
+    for (size_t i = 0; i < matrix_size2; i++) {
         source_sw_results[i] = 0;
         source_hw_results[i] = 0;
     }
@@ -125,7 +160,10 @@ int main(int argc, char** argv) {
 
     int a_row = DATA_SIZE;
     int a_col = DATA_SIZE;
-    int b_col = DATA_SIZE;
+    int b_col = MAX_SIZE;
+
+    //Measure execution time
+	auto start_time = xrt::timestamp();
 
     OCL_CHECK(err, err = krnl_systolic_array.setArg(0, buffer_in1));
     OCL_CHECK(err, err = krnl_systolic_array.setArg(1, buffer_in2));
@@ -148,6 +186,15 @@ int main(int argc, char** argv) {
 
     // Compute Software Results
     m_softwareGold(source_in1, source_in2, source_sw_results);
+
+    //End execution time
+	auto end_time = xrt::timestamp();
+
+	//Calculate time
+	uint64_t duration = end_time - start_time;
+
+	std::cout << "Execution time (clock cycles): " << duration << std::endl;
+
 
     // Compare the results of the Device to the simulation
     int match = 0;
