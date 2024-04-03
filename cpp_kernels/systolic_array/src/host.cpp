@@ -51,24 +51,23 @@ void m_softwareGold(std::vector<int, aligned_allocator<int> >& in1, // Input Mat
 
 //Function to read matrix from test file (ask if it works)
 std::vector<std::vector<float>> readMatrixFromFile(const std::string& filePath) {
-	std::ifstream file(filePath);
-	std::vector<std::vector<float>> matrix;
-	float value;
+    std::ifstream file(filePath);
+    std::vector<std::vector<float>> matrix;
+    float value;
 
-	if (file.is_open()) {
-    	while (!file.eof()) {
-        	std::vector<float> row;
-        	while (file >> value) {
-            	row.push_back(value);
-        	}
-        	matrix.push_back(row);
-    	}
-    	file.close();
-	} else {
-    	std::cerr << "Error opening file: " << filePath << std::endl;
-	}
-
-	return matrix;
+    if (file.is_open()) {
+      	while (!file.eof()) {
+          	std::vector<float> row;
+          	while (file >> value) {
+              	row.push_back(value);
+          	}
+          	matrix.push_back(row);
+      	}
+      	file.close();
+    } else {
+      	std::cerr << "Error opening file: " << filePath << std::endl;
+    }
+    return matrix;
 }
 
 
@@ -90,15 +89,16 @@ int main(int argc, char** argv) {
 
     size_t matrix_size1 = DATA_SIZE * DATA_SIZE;
     size_t matrix_size2 = DATA_SIZE * MAX_SIZE;
-    size_t matrix_size_bytes = sizeof(int) * matrix_size;
+    size_t matrix_size_bytes1 = sizeof(int) * matrix_size1;
+    size_t matrix_size_bytes2 = sizeof(int) * matrix_size2;
     cl_int err;
     cl::CommandQueue q;
     cl::Context context;
     cl::Kernel krnl_systolic_array;
 
     //Read matrices from file
-	std::vector<std::vector<float>> matrix1 = readMatrixFromFile("matrix1.txt");
-	std::vector<std::vector<float>> matrix2 = readMatrixFromFile("matrix2.txt");
+    std::vector<std::vector<float>> matrix1 = readMatrixFromFile("matrix1.txt");
+    std::vector<std::vector<float>> matrix2 = readMatrixFromFile("matrix2.txt");
 
     std::vector<int, aligned_allocator<int> > source_in1(matrix_size1);
     std::vector<int, aligned_allocator<int> > source_in2(matrix_size2);
@@ -107,11 +107,11 @@ int main(int argc, char** argv) {
 
     //Create the test data
     for (size_t i = 0; i < matrix1.size(); ++i) {
-    	for (size_t j = 0; j < matrix1[0].size(); ++j) {
-        	source_in1[i * matrix1[0].size() + j] = static_cast<int>(matrix1[i][j]);
-        	source_in2[i * matrix2[0].size() + j] = static_cast<int>(matrix2[i][j]);
-    	}
-	}
+      	for (size_t j = 0; j < matrix1[0].size(); ++j) {
+          	source_in1[i * matrix1[0].size() + j] = static_cast<int>(matrix1[i][j]);
+          	source_in2[i * matrix2[0].size() + j] = static_cast<int>(matrix2[i][j]);
+      	}
+    }
 
 
     // Create the software result
@@ -151,11 +151,11 @@ int main(int argc, char** argv) {
     }
 
     // Allocate Buffer in Global Memory
-    OCL_CHECK(err, cl::Buffer buffer_in1(context, CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, matrix_size_bytes,
+    OCL_CHECK(err, cl::Buffer buffer_in1(context, CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, matrix_size_bytes1,
                                          source_in1.data(), &err));
-    OCL_CHECK(err, cl::Buffer buffer_in2(context, CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, matrix_size_bytes,
+    OCL_CHECK(err, cl::Buffer buffer_in2(context, CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, matrix_size_bytes2,
                                          source_in2.data(), &err));
-    OCL_CHECK(err, cl::Buffer buffer_output(context, CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, matrix_size_bytes,
+    OCL_CHECK(err, cl::Buffer buffer_output(context, CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, matrix_size_bytes2,
                                             source_hw_results.data(), &err));
 
     int a_row = DATA_SIZE;
@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
     int b_col = MAX_SIZE;
 
     //Measure execution time
-	auto start_time = xrt::timestamp();
+  	auto start_time = xrt::timestamp();
 
     OCL_CHECK(err, err = krnl_systolic_array.setArg(0, buffer_in1));
     OCL_CHECK(err, err = krnl_systolic_array.setArg(1, buffer_in2));
