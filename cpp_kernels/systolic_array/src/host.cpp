@@ -97,8 +97,8 @@ int main(int argc, char** argv) {
     cl::Kernel krnl_systolic_array;
 
     //Read matrices from file
-    std::vector<std::vector<float>> matrix1 = readMatrixFromFile("matrix1.txt");
-    std::vector<std::vector<float>> matrix2 = readMatrixFromFile("matrix2.txt");
+    std::vector<std::vector<float>> matrix1 = readMatrixFromFile("tensor1.txt");
+    std::vector<std::vector<float>> matrix2 = readMatrixFromFile("tensor2.txt");
 
     std::vector<int, aligned_allocator<int> > source_in1(matrix_size1);
     std::vector<int, aligned_allocator<int> > source_in2(matrix_size2);
