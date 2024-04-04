@@ -26,6 +26,7 @@ Description:
 *******************************************************************************/
 #include "xcl2.hpp"
 #include <vector>
+#include <chrono>
 
 // Array Size to access
 #define DATA_SIZE 1280
@@ -163,7 +164,7 @@ int main(int argc, char** argv) {
     int b_col = MAX_SIZE;
 
     //Measure execution time
-  	auto start_time = xrt::timestamp();
+  	auto start_time = std::chrono::steady_clock::now();
 
     OCL_CHECK(err, err = krnl_systolic_array.setArg(0, buffer_in1));
     OCL_CHECK(err, err = krnl_systolic_array.setArg(1, buffer_in2));
@@ -188,12 +189,12 @@ int main(int argc, char** argv) {
     m_softwareGold(source_in1, source_in2, source_sw_results);
 
     //End execution time
-	auto end_time = xrt::timestamp();
+	  auto end_time = std::chrono::steady_clock::now();
 
-	//Calculate time
-	uint64_t duration = end_time - start_time;
+    //Calculate time
+    double duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
 
-	std::cout << "Execution time (clock cycles): " << duration << std::endl;
+    std::cout << "Execution time: " << duration << std::endl;
 
 
     // Compare the results of the Device to the simulation
