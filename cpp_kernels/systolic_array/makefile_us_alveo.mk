@@ -77,13 +77,13 @@ EMCONFIG_DIR = $(TEMP_DIR)
 
 ############################## Setting Targets ##############################
 .PHONY: all clean cleanall docs emconfig
-all: check-platform check-device check-vitis $(EXECUTABLE) $(BUILD_DIR)/mmult.xclbin emconfig
+all: check-platform check-device $(EXECUTABLE) $(BUILD_DIR)/mmult.xclbin emconfig
 
 .PHONY: host
 host: $(EXECUTABLE)
 
 .PHONY: build
-build: check-vitis check-device $(BUILD_DIR)/mmult.xclbin
+build: check-device $(BUILD_DIR)/mmult.xclbin
 
 .PHONY: xclbin
 xclbin: build
