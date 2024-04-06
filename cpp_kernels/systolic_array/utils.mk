@@ -29,6 +29,12 @@ PLATFORM := $(DEVICE)
 endif
 endif
 
+#Checks for XILINX_XRT
+check-xrt:
+ifndef XILINX_XRT
+	$(error XILINX_XRT variable is not set, please set correctly using "source /opt/xilinx/xrt/setup.sh" and rerun)
+endif
+
 check-device:
 	@set -eu; \
 	inallowlist=False; \
