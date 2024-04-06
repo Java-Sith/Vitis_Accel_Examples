@@ -15,7 +15,6 @@
 # makefile-generator v1.0.3
 #
 
-
 ############################## Help Section ##############################
 ifneq ($(findstring Makefile, $(MAKEFILE_LIST)), Makefile)
 help:
