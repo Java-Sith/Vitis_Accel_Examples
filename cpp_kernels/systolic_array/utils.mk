@@ -3,6 +3,7 @@
 # be overridden through the make command line
 #+-------------------------------------------------------------------------------
 
+
 DEBUG := no
 
 #Generates debug summary report
@@ -27,6 +28,12 @@ ifneq ($(DEVICE),)
 $(warning WARNING: DEVICE is deprecated in make command. Please use PLATFORM instead)
 PLATFORM := $(DEVICE)
 endif
+endif
+
+#Checks for XILINX_VITIS
+check-vitis:
+ifndef XILINX_VITIS
+	$(error XILINX_VITIS variable is not set, please set correctly using "source <Vitis_install_path>/Vitis/<Version>/settings64.sh" and rerun)
 endif
 
 #Checks for XILINX_XRT
