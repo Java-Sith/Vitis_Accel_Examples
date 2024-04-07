@@ -36,13 +36,13 @@ Description:
 
 // Software implementation of Matrix Multiplication
 // The inputs are of the size (DATA_SIZE x DATA_SIZE)
-void m_softwareGold(std::vector<int, aligned_allocator<int> >& in1, // Input Matrix 1
+void mat_mul(std::vector<int, aligned_allocator<int> >& in1, // Input Matrix 1
                     std::vector<int, aligned_allocator<int> >& in2, // Input Matrix 2
                     std::vector<int, aligned_allocator<int> >& out  // Output Matrix
                     ) {
     // Perform Matrix multiply Out = In1 x In2
     for (int i = 0; i < DATA_SIZE; i++) {
-        for (int j = 0; j < DATA_SIZE; j++) {
+        for (int j = 0; j < MAX_SIZE; j++) {
             for (int k = 0; k < DATA_SIZE; k++) {
                 out[i * DATA_SIZE + j] += in1[i * DATA_SIZE + k] * in2[k * DATA_SIZE + j];
             }
@@ -51,24 +51,26 @@ void m_softwareGold(std::vector<int, aligned_allocator<int> >& in1, // Input Mat
 }
 
 //Function to read matrix from test file (ask if it works)
-std::vector<std::vector<float>> readMatrixFromFile(const std::string& filePath) {
-    std::ifstream file(filePath);
-    std::vector<std::vector<float>> matrix;
-    float value;
-
-    if (file.is_open()) {
-      	while (!file.eof()) {
-          	std::vector<float> row;
-          	while (file >> value) {
-              	row.push_back(value);
-          	}
-          	matrix.push_back(row);
-      	}
-      	file.close();
-    } else {
-      	std::cerr << "Error opening file: " << filePath << std::endl;
+void loadMatrixFromFile(std::vector<int, aligned_allocator<int>>& matrix, int& M, int& N, const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return;
     }
-    return matrix;
+
+    std::vector<int, aligned_allocator<int>> tempMatrix;
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        float floatValue;
+        while (iss >> floatValue) {
+            int intValue = static_cast<int>(floatValue); // Casting float to int
+            tempMatrix.push_back(intValue);
+        }
+    }
+
+    M = tempMatrix.size() / N;
+    matrix = tempMatrix;
 }
 
 
@@ -97,23 +99,13 @@ int main(int argc, char** argv) {
     cl::Context context;
     cl::Kernel krnl_systolic_array;
 
-    //Read matrices from file
-    std::vector<std::vector<float>> matrix1 = readMatrixFromFile("tensor1.txt");
-    std::vector<std::vector<float>> matrix2 = readMatrixFromFile("tensor2.txt");
-
     std::vector<int, aligned_allocator<int> > source_in1(matrix_size1);
     std::vector<int, aligned_allocator<int> > source_in2(matrix_size2);
     std::vector<int, aligned_allocator<int> > source_hw_results(matrix_size2);
     std::vector<int, aligned_allocator<int> > source_sw_results(matrix_size2);
 
-    //Create the test data
-    for (size_t i = 0; i < matrix1.size(); ++i) {
-      	for (size_t j = 0; j < matrix1[0].size(); ++j) {
-          	source_in1[i * matrix1[0].size() + j] = static_cast<int>(matrix1[i][j]);
-          	source_in2[i * matrix2[0].size() + j] = static_cast<int>(matrix2[i][j]);
-      	}
-    }
-
+    loadMatrixFromFile(source_in1, DATA_SIZE, DATA_SIZE, "tensor1.txt");
+    loadMatrixFromFile(source_in1, DATA_SIZE, MAX_SIZE, "tensor2.txt");
 
     // Create the software result
     for (size_t i = 0; i < matrix_size2; i++) {
@@ -163,8 +155,8 @@ int main(int argc, char** argv) {
     int a_col = DATA_SIZE;
     int b_col = MAX_SIZE;
 
-    //Measure execution time
-  	auto start_time = std::chrono::steady_clock::now();
+    // Start measuring time
+    auto start = std::chrono::high_resolution_clock::now();
 
     OCL_CHECK(err, err = krnl_systolic_array.setArg(0, buffer_in1));
     OCL_CHECK(err, err = krnl_systolic_array.setArg(1, buffer_in2));
@@ -186,15 +178,16 @@ int main(int argc, char** argv) {
     // OPENCL HOST CODE AREA END
 
     // Compute Software Results
-    m_softwareGold(source_in1, source_in2, source_sw_results);
+    mat_mul(source_in1, source_in2, source_sw_results);
 
-    //End execution time
-	  auto end_time = std::chrono::steady_clock::now();
+    // Stop measuring time
+    auto end = std::chrono::high_resolution_clock::now();
 
     //Calculate time
-    double duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+    std::chrono::duration<double> duration = end - start;
+    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
 
-    std::cout << "Execution time: " << duration << std::endl;
+    std::cout << "Execution time: " << duration_ms.count() << " milliseconds" << std::endl;
 
 
     // Compare the results of the Device to the simulation

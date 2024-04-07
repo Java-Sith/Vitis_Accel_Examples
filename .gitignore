@@ -18,3 +18,4 @@ lib/
 *_LOCAL_*
 *_REMOTE_*
 *.swp
+.vscode/
