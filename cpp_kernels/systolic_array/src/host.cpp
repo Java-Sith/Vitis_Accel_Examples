@@ -197,7 +197,6 @@ int main(int argc, char** argv) {
     for (int i = 0; i < matrix_size1; i++) {
         if (source_in1[i] != read_data[i]) {
             printf("Error: Data mismatch at index %d. Expected %d, got %d.\n", i, source_in1[i], read_data[i]);
-            return;
         }
     }
 
