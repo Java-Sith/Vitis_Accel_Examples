@@ -129,9 +129,9 @@ int main(int argc, char** argv) {
     }
 
     // Print the first few values of the matrix to verify that they were loaded correctly
-    for (int i = 0; i < std::min(10, rows); i++) {
-        for (int j = 0; j < std::min(10, cols); j++) {
-            printf("%d ", source_in1[i * cols + j]);
+    for (int i = 0; i < std::min(10, DATA_SIZE); i++) {
+        for (int j = 0; j < std::min(10, DATA_SIZE); j++) {
+            printf("%d ", source_in1[i * DATA_SIZE + j]);
         }
         printf("\n");
     }
