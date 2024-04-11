@@ -50,27 +50,40 @@ void mat_mul(std::vector<int, aligned_allocator<int> >& in1, // Input Matrix 1
     }
 }
 
-//Function to read matrix from test file (ask if it works)
-void loadMatrixFromFile(std::vector<int, aligned_allocator<int>>& matrix, int& M, int& N, const std::string& filename) {
+// Function to load a tensor from a text file
+void load_tensor(std::vector<int, aligned_allocator<int> >& source_in1, int rows, int cols, const char *filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "Error opening file: " << filename << std::endl;
+        printf("Error opening file for reading.\n");
         return;
     }
 
-    std::vector<int, aligned_allocator<int>> tempMatrix;
     std::string line;
-    while (std::getline(file, line)) {
+    float value;
+    for (int i = 0; i < rows; i++) {
+        if (!std::getline(file, line)) {
+            printf("Error: Not enough rows in file.\n");
+            return;
+        }
         std::istringstream iss(line);
-        float floatValue;
-        while (iss >> floatValue) {
-            int intValue = static_cast<int>(floatValue); // Casting float to int
-            tempMatrix.push_back(intValue);
+        for (int j = 0; j < cols; j++) {
+            if (!(iss >> value)) {
+                printf("Error: Non-numeric value encountered.\n");
+                return;
+            }
+            source_in1[i * cols + j] = static_cast<int>(value);
+        }
+        // Check for extra values on the line
+        if (iss >> value) {
+            printf("Error: Too many values on a line.\n");
+            return;
         }
     }
-
-    M = tempMatrix.size() / N;
-    matrix = tempMatrix;
+    // Check for extra lines in the file
+    if (std::getline(file, line)) {
+        printf("Error: Too many rows in file.\n");
+        return;
+    }
 }
 
 
@@ -103,14 +116,24 @@ int main(int argc, char** argv) {
     std::vector<int, aligned_allocator<int> > source_in2(matrix_size2);
     std::vector<int, aligned_allocator<int> > source_hw_results(matrix_size2);
     std::vector<int, aligned_allocator<int> > source_sw_results(matrix_size2);
+    // Create a new vector to hold the data read from the buffer
+    std::vector<int, aligned_allocator<int> > read_data(matrix_size1);
 
-    loadMatrixFromFile(source_in1, DATA_SIZE, DATA_SIZE, "tensor1.txt");
-    loadMatrixFromFile(source_in1, DATA_SIZE, MAX_SIZE, "tensor2.txt");
+    load_tensor(source_in1, DATA_SIZE, DATA_SIZE, "tensor1.txt");
+    load_tensor(source_in2, DATA_SIZE, MAX_SIZE, "tensor2.txt");
 
     // Create the software result
     for (size_t i = 0; i < matrix_size2; i++) {
         source_sw_results[i] = 0;
         source_hw_results[i] = 0;
+    }
+
+    // Print the first few values of the matrix to verify that they were loaded correctly
+    for (int i = 0; i < std::min(10, rows); i++) {
+        for (int j = 0; j < std::min(10, cols); j++) {
+            printf("%d ", source_in1[i * cols + j]);
+        }
+        printf("\n");
     }
 
     // OPENCL HOST CODE AREA START
@@ -155,9 +178,6 @@ int main(int argc, char** argv) {
     int a_col = DATA_SIZE;
     int b_col = MAX_SIZE;
 
-    // Start measuring time
-    auto start = std::chrono::high_resolution_clock::now();
-
     OCL_CHECK(err, err = krnl_systolic_array.setArg(0, buffer_in1));
     OCL_CHECK(err, err = krnl_systolic_array.setArg(1, buffer_in2));
     OCL_CHECK(err, err = krnl_systolic_array.setArg(2, buffer_output));
@@ -167,6 +187,23 @@ int main(int argc, char** argv) {
 
     // Copy input data to device global memory
     OCL_CHECK(err, err = q.enqueueMigrateMemObjects({buffer_in1, buffer_in2}, 0 /* 0 means from host*/));
+
+    // Read the data from the buffer
+    OCL_CHECK(err, q.enqueueReadBuffer(buffer_in1, CL_TRUE, 0, matrix_size_bytes1, read_data.data(), nullptr, nullptr));
+    q.finish();
+
+    // Compare the read data with the original data
+    for (int i = 0; i < rows * cols; i++) {
+        if (source_in1[i] != read_data[i]) {
+            printf("Error: Data mismatch at index %d. Expected %d, got %d.\n", i, source_in1[i], read_data[i]);
+            return;
+        }
+    }
+
+    printf("Data verification successful. No mismatches found.\n");
+
+    // Start measuring time
+    auto start = std::chrono::high_resolution_clock::now();
 
     // Launch the Kernel
     OCL_CHECK(err, err = q.enqueueTask(krnl_systolic_array));
