@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
     q.finish();
 
     // Compare the read data with the original data
-    for (int i = 0; i < matrix_size1; i++) {
+    for (size_t i = 0; i < matrix_size1; i++) {
         if (source_in1[i] != read_data[i]) {
             printf("Error: Data mismatch at index %d. Expected %d, got %d.\n", i, source_in1[i], read_data[i]);
         }
@@ -229,7 +229,7 @@ int main(int argc, char** argv) {
 
     // Compare the results of the Device to the simulation
     int match = 0;
-    for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
+    for (size_t i = 0; i < matrix_size2; i++) {
         if (source_hw_results[i] != source_sw_results[i]) {
             std::cout << "Error: Result mismatch" << std::endl;
             std::cout << "i = " << i << " CPU result = " << source_sw_results[i]
