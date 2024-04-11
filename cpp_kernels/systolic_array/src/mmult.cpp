@@ -53,7 +53,8 @@ Kernel Description :
 #include <stdio.h>
 
 // Maximum Array Size
-#define MAX_SIZE 16
+#define MAX_SIZE 1536
+#define DATA_SIZE 1280
 
 // TRIPCOUNT identifier
 const unsigned int c_size = MAX_SIZE;
@@ -71,13 +72,13 @@ void mmult(const int* a, // Read-Only Matrix A
     int c_col = b_col;
 
     // Local memory to store input and output matrices
-    int localA[MAX_SIZE][MAX_SIZE];
+    int localA[DATA_SIZE][DATA_SIZE];
 #pragma HLS ARRAY_PARTITION variable = localA dim = 1 complete
 
-    int localB[MAX_SIZE][MAX_SIZE];
+    int localB[DATA_SIZE][MAX_SIZE];
 #pragma HLS ARRAY_PARTITION variable = localB dim = 2 complete
 
-    int localC[MAX_SIZE][MAX_SIZE];
+    int localC[DATA_SIZE][MAX_SIZE];
 #pragma HLS ARRAY_PARTITION variable = localC dim = 0 complete
 
 // Burst reads on input matrices from global memory
@@ -150,7 +151,7 @@ systolic1:
         for (int i = 0; i < MAX_SIZE; i++) {
 #pragma HLS UNROLL
         systolic3:
-            for (int j = 0; j < MAX_SIZE; j++) {
+            for (int j = 0; j < DATA_SIZE; j++) {
 #pragma HLS UNROLL
                 // Get previous sum
                 int last = (k == 0) ? 0 : localC[i][j];
