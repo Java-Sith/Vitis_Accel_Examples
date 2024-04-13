@@ -37,55 +37,59 @@ Description:
 
 // Software implementation of Matrix Multiplication
 // The inputs are of the size (DATA_SIZE x DATA_SIZE)
+#define TILE_SIZE 16 // Define el tamaño del tile
+
 void mat_mul(std::vector<int, aligned_allocator<int> >& in1, // Input Matrix 1
-                    std::vector<int, aligned_allocator<int> >& in2, // Input Matrix 2
-                    std::vector<int, aligned_allocator<int> >& out  // Output Matrix
-                    ) {
+             std::vector<int, aligned_allocator<int> >& in2, // Input Matrix 2
+             std::vector<int, aligned_allocator<int> >& out  // Output Matrix
+             ) {
     // Perform Matrix multiply Out = In1 x In2
-    for (int i = 0; i < DATA_SIZE; i++) {
-        for (int j = 0; j < MAX_SIZE; j++) {
-            for (int k = 0; k < DATA_SIZE; k++) {
-                out[i * DATA_SIZE + j] += in1[i * DATA_SIZE + k] * in2[k * DATA_SIZE + j];
+    for (int ii = 0; ii < DATA_SIZE; ii += TILE_SIZE) {
+        for (int jj = 0; jj < MAX_SIZE; jj += TILE_SIZE) {
+            for (int kk = 0; kk < DATA_SIZE; kk += TILE_SIZE) {
+                // Procesa cada tile
+                for (int i = ii; i < min(ii + TILE_SIZE, DATA_SIZE); i++) {
+                    for (int j = jj; j < min(jj + TILE_SIZE, MAX_SIZE); j++) {
+                        for (int k = kk; k < min(kk + TILE_SIZE, DATA_SIZE); k++) {
+                            out[i * DATA_SIZE + j] += in1[i * DATA_SIZE + k] * in2[k * DATA_SIZE + j];
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 // Function to load a tensor from a text file
-void load_tensor(std::vector<int, aligned_allocator<int> >& source_in1, int rows, int cols, const char *filename) {
+void load_tensor(std::vector<int, aligned_allocator<int> > &matrix, int rows, int cols, const char *filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        printf("Error opening file for reading.\n");
+        std::cout << "Error opening file for reading.\n";
         return;
     }
 
-    std::string line;
-    float value;
     for (int i = 0; i < rows; i++) {
-        if (!std::getline(file, line)) {
-            printf("Error: Not enough rows in file.\n");
-            return;
-        }
-        std::istringstream iss(line);
         for (int j = 0; j < cols; j++) {
-            if (!(iss >> value)) {
-                printf("Error: Non-numeric value encountered.\n");
-                return;
-            }
-            source_in1[i * cols + j] = static_cast<int>(value);
+            float value;
+            file >> value;
+            // Redondea el valor al entero más cercano
+            int rounded_value = round(value);
+            matrix.push_back(rounded_value);
         }
-        // Check for extra values on the line
-        if (iss >> value) {
-            printf("Error: Too many values on a line.\n");
-            return;
-        }
-    }
-    // Check for extra lines in the file
-    if (std::getline(file, line)) {
-        printf("Error: Too many rows in file.\n");
-        return;
     }
 }
+
+/* To check later:
+#pragma HLS INTERFACE m_axi port=A offset=slave bundle=gmem
+#pragma HLS INTERFACE m_axi port=B offset=slave bundle=gmem
+#pragma HLS INTERFACE m_axi port=C offset=slave bundle=gmem
+#pragma HLS INTERFACE s_axilite port=A bundle=control
+#pragma HLS INTERFACE s_axilite port=B bundle=control
+#pragma HLS INTERFACE s_axilite port=C bundle=control
+#pragma HLS INTERFACE s_axilite port=size bundle=control
+#pragma HLS INTERFACE s_axilite port=return bundle=control
+#pragma HLS PIPELINE
+*/
 
 
 int main(int argc, char** argv) {

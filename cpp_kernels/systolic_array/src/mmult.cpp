@@ -57,7 +57,7 @@ Kernel Description :
 #define DATA_SIZE 1280
 
 // TRIPCOUNT identifier
-const unsigned int c_size = MAX_SIZE;
+#define TILE_SIZE 16
 
 extern "C" {
 void mmult(const int* a, // Read-Only Matrix A
@@ -73,36 +73,42 @@ void mmult(const int* a, // Read-Only Matrix A
 
     // Local memory to store input and output matrices
     int localA[DATA_SIZE][DATA_SIZE];
-#pragma HLS ARRAY_PARTITION variable = localA dim = 1 complete
+//#pragma HLS ARRAY_PARTITION variable = localA dim = 1 complete
 
     int localB[DATA_SIZE][MAX_SIZE];
-#pragma HLS ARRAY_PARTITION variable = localB dim = 2 complete
+//#pragma HLS ARRAY_PARTITION variable = localB dim = 2 complete
 
     int localC[DATA_SIZE][MAX_SIZE];
-#pragma HLS ARRAY_PARTITION variable = localC dim = 0 complete
+//#pragma HLS ARRAY_PARTITION variable = localC dim = 0 complete
 
 // Burst reads on input matrices from global memory
 // Read Input A
 // Auto-pipeline is going to apply pipeline to these loops
 readA:
-    for (int loc = 0, i = 0, j = 0; loc < a_row * a_col; loc++, j++) {
-#pragma HLS LOOP_TRIPCOUNT min = c_size* c_size max = c_size * c_size
-        if (j == a_col) {
-            i++;
-            j = 0;
+    for (int ii = 0; ii < a_row; ii += TILE_SIZE) {
+#pragma HLS LOOP_TRIPCOUNT min = (DATA_SIZE * DATA_SIZE)/TILE_SIZE max = (MAX_SIZE * MAX_SIZE)/TILE_SIZE
+        for (int jj = 0; jj < a_col; jj += TILE_SIZE) {
+            // Procesa cada tile
+            for (int i = ii; i < min(ii + TILE_SIZE, a_row); i++) {
+                for (int j = jj; j < min(jj + TILE_SIZE, a_col); j++) {
+                    localA[i][j] = a[i * a_col + j];
+                }
+            }
         }
-        localA[i][j] = a[loc];
     }
 
 // Read Input B
 readB:
-    for (int loc = 0, i = 0, j = 0; loc < b_row * b_col; loc++, j++) {
-#pragma HLS LOOP_TRIPCOUNT min = c_size* c_size max = c_size * c_size
-        if (j == b_col) {
-            i++;
-            j = 0;
+    for (int ii = 0; ii < b_row; ii += TILE_SIZE) {
+#pragma HLS LOOP_TRIPCOUNT min = (DATA_SIZE * DATA_SIZE)/TILE_SIZE max = (MAX_SIZE * MAX_SIZE)/TILE_SIZE
+        for (int jj = 0; jj < b_col; jj += TILE_SIZE) {
+            // Procesa cada tile
+            for (int i = ii; i < min(ii + TILE_SIZE, b_row); i++) {
+                for (int j = jj; j < min(jj + TILE_SIZE, b_col); j++) {
+                    localA[i][j] = b[i * b_col + j];
+                }
+            }
         }
-        localB[i][j] = b[loc];
     }
 
 // Perform systolic matrix multiply
@@ -145,25 +151,32 @@ readB:
 //       |___|      |___|      |___|      |___|
 
 systolic1:
-    for (int k = 0; k < a_col; k++) {
-#pragma HLS LOOP_TRIPCOUNT min = c_size max = c_size
+    for (int kk = 0; kk < a_col; kk += TILE_SIZE) {
+#pragma HLS LOOP_TRIPCOUNT min = DATA_SIZE/TILE_SIZE max = MAX_SIZE/TILE_SIZE
     systolic2:
-        for (int i = 0; i < MAX_SIZE; i++) {
+        for (int ii = 0; ii < MAX_SIZE; ii += TILE_SIZE) {
 #pragma HLS UNROLL
         systolic3:
-            for (int j = 0; j < DATA_SIZE; j++) {
+            for (int jj = 0; jj < DATA_SIZE; jj += TILE_SIZE) {
 #pragma HLS UNROLL
-                // Get previous sum
-                int last = (k == 0) ? 0 : localC[i][j];
+                // Procesa cada tile
+                for (int k = kk; k < min(kk + TILE_SIZE, a_col); k++) {
+                    for (int i = ii; i < min(ii + TILE_SIZE, MAX_SIZE); i++) {
+                        for (int j = jj; j < min(jj + TILE_SIZE, DATA_SIZE); j++) {
+                            // Get previous sum
+                            int last = (k == 0) ? 0 : localC[i][j];
 
-                // Update current sum
-                // Handle boundary conditions
-                int a_val = (i < a_row && k < a_col) ? localA[i][k] : 0;
-                int b_val = (k < b_row && j < b_col) ? localB[k][j] : 0;
-                int result = last + a_val * b_val;
+                            // Update current sum
+                            // Handle boundary conditions
+                            int a_val = (i < a_row && k < a_col) ? localA[i][k] : 0;
+                            int b_val = (k < b_row && j < b_col) ? localB[k][j] : 0;
+                            int result = last + a_val * b_val;
 
-                // Write back results
-                localC[i][j] = result;
+                            // Write back results
+                            localC[i][j] = result;
+                        }
+                    }
+                }
             }
         }
     }
@@ -171,13 +184,16 @@ systolic1:
 // Burst write from output matrices to global memory
 // Burst write from matrix C
 writeC:
-    for (int loc = 0, i = 0, j = 0; loc < c_row * c_col; loc++, j++) {
-#pragma HLS LOOP_TRIPCOUNT min = c_size* c_size max = c_size * c_size
-        if (j == c_col) {
-            i++;
-            j = 0;
+    for (int ii = 0; ii < c_row; ii += TILE_SIZE) {
+#pragma HLS LOOP_TRIPCOUNT min = (DATA_SIZE * DATA_SIZE)/TILE_SIZE max = (MAX_SIZE * MAX_SIZE)/TILE_SIZE
+        for (int jj = 0; jj < c_col; jj += TILE_SIZE) {
+            // Procesa cada tile
+            for (int i = ii; i < min(ii + TILE_SIZE, c_row); i++) {
+                for (int j = jj; j < min(jj + TILE_SIZE, c_col); j++) {
+                    c[i * c_col + j] = localC[i][j];
+                }
+            }
         }
-        c[loc] = localC[i][j];
     }
 }
 }
