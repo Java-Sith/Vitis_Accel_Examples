@@ -27,7 +27,7 @@ Description:
 #include "xcl2.hpp"
 #include <vector>
 #include <chrono>
-#include <sstream>
+#include <cmath>
 
 // Array Size to access
 #define DATA_SIZE 1280
@@ -48,9 +48,9 @@ void mat_mul(std::vector<int, aligned_allocator<int> >& in1, // Input Matrix 1
         for (int jj = 0; jj < MAX_SIZE; jj += TILE_SIZE) {
             for (int kk = 0; kk < DATA_SIZE; kk += TILE_SIZE) {
                 // Procesa cada tile
-                for (int i = ii; i < min(ii + TILE_SIZE, DATA_SIZE); i++) {
-                    for (int j = jj; j < min(jj + TILE_SIZE, MAX_SIZE); j++) {
-                        for (int k = kk; k < min(kk + TILE_SIZE, DATA_SIZE); k++) {
+                for (int i = ii; i < std::min(ii + TILE_SIZE, DATA_SIZE); i++) {
+                    for (int j = jj; j < std::min(jj + TILE_SIZE, MAX_SIZE); j++) {
+                        for (int k = kk; k < std::min(kk + TILE_SIZE, DATA_SIZE); k++) {
                             out[i * DATA_SIZE + j] += in1[i * DATA_SIZE + k] * in2[k * DATA_SIZE + j];
                         }
                     }

@@ -60,6 +60,9 @@ Kernel Description :
 #define TILE_SIZE 16
 
 extern "C" {
+// Define a macro for min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+
 void mmult(const int* a, // Read-Only Matrix A
            const int* b, // Read-Only Matrix B
            int* c,       // Output Result
