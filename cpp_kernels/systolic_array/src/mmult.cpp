@@ -55,9 +55,12 @@ Kernel Description :
 // Maximum Array Size
 #define MAX_SIZE 1536
 #define DATA_SIZE 1280
+#define TILE_SIZE 16
 
 // TRIPCOUNT identifier
-#define TILE_SIZE 16
+const unsigned int max_size = MAX_SIZE;
+const unsigned int data_size = DATA_SIZE;
+const unsigned int tile_size = TILE_SIZE;
 
 extern "C" {
 // Define a macro for min
@@ -89,7 +92,7 @@ void mmult(const int* a, // Read-Only Matrix A
 // Auto-pipeline is going to apply pipeline to these loops
 readA:
     for (int ii = 0; ii < a_row; ii += TILE_SIZE) {
-#pragma HLS LOOP_TRIPCOUNT min = (DATA_SIZE * DATA_SIZE)/TILE_SIZE max = (MAX_SIZE * MAX_SIZE)/TILE_SIZE
+#pragma HLS LOOP_TRIPCOUNT min = (data_size * data_size)/tile_size max = (max_size * max_size)/tile_size
         for (int jj = 0; jj < a_col; jj += TILE_SIZE) {
             // Procesa cada tile
             for (int i = ii; i < min(ii + TILE_SIZE, a_row); i++) {
@@ -103,7 +106,7 @@ readA:
 // Read Input B
 readB:
     for (int ii = 0; ii < b_row; ii += TILE_SIZE) {
-#pragma HLS LOOP_TRIPCOUNT min = (DATA_SIZE * DATA_SIZE)/TILE_SIZE max = (MAX_SIZE * MAX_SIZE)/TILE_SIZE
+#pragma HLS LOOP_TRIPCOUNT min = (data_size * data_size)/tile_size max = (max_size * max_size)/tile_size
         for (int jj = 0; jj < b_col; jj += TILE_SIZE) {
             // Procesa cada tile
             for (int i = ii; i < min(ii + TILE_SIZE, b_row); i++) {
@@ -155,7 +158,7 @@ readB:
 
 systolic1:
     for (int kk = 0; kk < a_col; kk += TILE_SIZE) {
-#pragma HLS LOOP_TRIPCOUNT min = DATA_SIZE/TILE_SIZE max = MAX_SIZE/TILE_SIZE
+#pragma HLS LOOP_TRIPCOUNT min = data_size/tile_size max = max_size/tile_size
     systolic2:
         for (int ii = 0; ii < MAX_SIZE; ii += TILE_SIZE) {
 #pragma HLS UNROLL
@@ -188,7 +191,7 @@ systolic1:
 // Burst write from matrix C
 writeC:
     for (int ii = 0; ii < c_row; ii += TILE_SIZE) {
-#pragma HLS LOOP_TRIPCOUNT min = (DATA_SIZE * DATA_SIZE)/TILE_SIZE max = (MAX_SIZE * MAX_SIZE)/TILE_SIZE
+#pragma HLS LOOP_TRIPCOUNT min = (data_size * data_size)/tile_size max = (max_size * max_size)/tile_size
         for (int jj = 0; jj < c_col; jj += TILE_SIZE) {
             // Procesa cada tile
             for (int i = ii; i < min(ii + TILE_SIZE, c_row); i++) {
