@@ -31,7 +31,7 @@ VPP_LDFLAGS :=
 VPP_FLAGS += --jobs 6 --save-temps
 
 # Compiler flags for host code
-CFLAGS := -I${XILINX_XRT}/include -Wall -std=c++17 -O3 -I. -I./hls-types/include
+CFLAGS := -I${XILINX_XRT}/include -Wall -std=c++17 -O3 -I. -I./SW/hls-types/include
 LDFLAGS := -L${XILINX_XRT}/lib -pthread -lxrt_core -lxrt_coreutil
 
 .PHONY: all clean cleanall fpgabin
