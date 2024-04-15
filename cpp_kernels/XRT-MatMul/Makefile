@@ -42,7 +42,7 @@ all: $(EXE) build
 build: check_platform emconfig $(LINK_OUTPUT) $(FPGA_BIN) $(XCL_BIN)
 
 $(EXE): $(SRC)
-    $(CXX) -o $@ $< $(CFLAGS) $(LDFLAGS)
+	$(CXX) -o $@ $< $(CFLAGS) $(LDFLAGS)
 
 $(TEMP_DIR)/$(HLS_FILE_NAME).xo: $(HLS_FILE)
 	mkdir -p $(TEMP_DIR)
