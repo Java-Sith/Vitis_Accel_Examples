@@ -1,24 +1,25 @@
 # Setting relevant variables
 ROOT_DIR=$(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 TARGET := hw
-PLATFORM ?= $(ROOT_DIR)/../kv260_custom.xpfm
+PLATFORM := $(ROOT_DIR)/../kv260_custom.xpfm
 
 # Setting input file
 HLS_FILES := $(wildcard *.cpp)
 HLS_FILES_NAMES := $(HLS_FILES:.cpp=)
+HLS_FILE_NAME := $(subst $(space),_,$(HLS_FILES_NAMES))
 
 # Setting directories
 TEMP_DIR := ./tmp.$(TARGET)
 BUILD_DIR := ./build.$(TARGET)
 PACKAGE_OUT = ./package.$(TARGET)
-LINK_OUTPUT := $(BUILD_DIR)/$(HLS_FILES_NAMES).link.xclbin
+LINK_OUTPUT := $(BUILD_DIR)/$(HLS_FILE_NAME).link.xclbin
 EMCONFIG_DIR = $(TEMP_DIR)
 
 # Packaging
-FPGA_BIN := $(PACKAGE_OUT)/$(HLS_FILES_NAMES).bit.bin
-XCL_BIN := $(PACKAGE_OUT)/$(HLS_FILES_NAMES).xclbin
+FPGA_BIN := $(PACKAGE_OUT)/$(HLS_FILE_NAME).bit.bin
+XCL_BIN := $(PACKAGE_OUT)/$(HLS_FILE_NAME).xclbin
 SHELL_JSON := $(PACKAGE_OUT)/shell.json
-DTB_FILE := $(PACKAGE_OUT)/$(HLS_FILES_NAMES).dtbo
+DTB_FILE := $(PACKAGE_OUT)/$(HLS_FILE_NAME).dtbo
 
 # Output files
 HLS_KERNEL_FILES := $(addprefix $(TEMP_DIR)/,$(HLS_FILES:.cpp=.xo))
