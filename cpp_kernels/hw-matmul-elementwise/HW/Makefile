@@ -6,7 +6,7 @@ PLATFORM := $(ROOT_DIR)/../kv260_custom.xpfm
 # Setting input file
 HLS_FILES := $(wildcard *.cpp)
 HLS_FILES_NAMES := $(HLS_FILES:.cpp=)
-HLS_FILE_NAME := $(subst $(space),_,$(HLS_FILES_NAMES))
+HLS_FILE_NAME := $(subst $(space),_,$(join $(HLS_FILES_NAMES),_))
 
 # Setting directories
 TEMP_DIR := ./tmp.$(TARGET)
@@ -81,8 +81,8 @@ $(DTB_FILE): $(ROOT_DIR)/../pl.dtbo
 
 # Cleaning rules
 clean:
-	$(RM) -rf $(EXECUTABLE) *.xclbin/{*sw_emu*,*hw_emu*} 
-	$(RM) -rf profile_* TempConfig system_estimate.xtxt *.rpt *.csv 
+	$(RM) -rf $(EXECUTABLE) *.xclbin/{*sw_emu*,*hw_emu*}
+	$(RM) -rf profile_* TempConfig system_estimate.xtxt *.rpt *.csv
 	$(RM) -rf src/*.ll *v++* .Xil emconfig.json dltmp* xmltmp* *.log *.jou *.wcfg *.wdb
 
 cleanall: clean
