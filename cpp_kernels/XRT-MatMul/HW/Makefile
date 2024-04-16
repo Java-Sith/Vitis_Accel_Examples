@@ -1,7 +1,7 @@
 # Setting relevant variables
 ROOT_DIR=$(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 TARGET := hw
-PLATFORM := $(ROOT_DIR)/../kv260_custom.xpfm
+PLATFORM ?= $(ROOT_DIR)/../kv260_custom.xpfm
 
 # Setting input file
 HLS_FILES := $(wildcard *.cpp)
@@ -70,13 +70,13 @@ $(XCL_BIN): $(LINK_OUTPUT)
 	mkdir -p $(PACKAGE_OUT)
 	v++ -p $(LINK_OUTPUT) $(VPP_FLAGS) -t $(TARGET) --platform $(PLATFORM) --package.out_dir $(PACKAGE_OUT) -o $(XCL_BIN)
 
-$(SHELL_JSON): $(ROOT_DIR)/../shell.json
-	mkdir -p $(PACKAGE_OUT)
-	cp $< $@
+# $(SHELL_JSON): $(ROOT_DIR)/../shell.json
+# 	mkdir -p $(PACKAGE_OUT)
+# 	cp $< $@
 
-$(DTB_FILE): $(ROOT_DIR)/../pl.dtbo
-	mkdir -p $(PACKAGE_OUT)
-	cp $< $@
+# $(DTB_FILE): $(ROOT_DIR)/../pl.dtbo
+# 	mkdir -p $(PACKAGE_OUT)
+# 	cp $< $@
 
 # Cleaning rules
 clean:

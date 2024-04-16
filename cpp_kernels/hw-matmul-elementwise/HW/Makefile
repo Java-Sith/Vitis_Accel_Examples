@@ -1,7 +1,7 @@
 # Setting relevant variables
 ROOT_DIR=$(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 TARGET := hw
-PLATFORM := $(ROOT_DIR)/../kv260_custom.xpfm
+PLATFORM ?= $(ROOT_DIR)/../kv260_custom.xpfm
 
 # Setting input file
 HLS_FILES := $(wildcard *.cpp)
@@ -16,7 +16,7 @@ EMCONFIG_DIR = $(TEMP_DIR)
 
 # Packaging
 #FPGA_BIN := $(PACKAGE_OUT)/$(HLS_FILE_NAME).bit.bin
-XCL_BIN := $(PACKAGE_OUT)/$(HLS_FILE_NAME).xclbin
+XCL_BIN := $(PACKAGE_OUT)/kernels.xclbin
 #SHELL_JSON := $(PACKAGE_OUT)/shell.json
 #DTB_FILE := $(PACKAGE_OUT)/$(HLS_FILE_NAME).dtbo
 
@@ -70,13 +70,13 @@ $(XCL_BIN): $(LINK_OUTPUT)
 	mkdir -p $(PACKAGE_OUT)
 	v++ -p $(LINK_OUTPUT) $(VPP_FLAGS) -t $(TARGET) --platform $(PLATFORM) --package.out_dir $(PACKAGE_OUT) -o $(XCL_BIN)
 
-$(SHELL_JSON): $(ROOT_DIR)/../shell.json
-	mkdir -p $(PACKAGE_OUT)
-	cp $< $@
+# $(SHELL_JSON): $(ROOT_DIR)/../shell.json
+# 	mkdir -p $(PACKAGE_OUT)
+# 	cp $< $@
 
-$(DTB_FILE): $(ROOT_DIR)/../pl.dtbo
-	mkdir -p $(PACKAGE_OUT)
-	cp $< $@
+# $(DTB_FILE): $(ROOT_DIR)/../pl.dtbo
+# 	mkdir -p $(PACKAGE_OUT)
+# 	cp $< $@
 
 # Cleaning rules
 clean:
