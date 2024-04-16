@@ -15,10 +15,10 @@ LINK_OUTPUT := $(BUILD_DIR)/$(HLS_FILE_NAME).link.xclbin
 EMCONFIG_DIR = $(TEMP_DIR)
 
 # Packaging
-FPGA_BIN := $(PACKAGE_OUT)/$(HLS_FILE_NAME).bit.bin
+#FPGA_BIN := $(PACKAGE_OUT)/$(HLS_FILE_NAME).bit.bin
 XCL_BIN := $(PACKAGE_OUT)/$(HLS_FILE_NAME).xclbin
-SHELL_JSON := $(PACKAGE_OUT)/shell.json
-DTB_FILE := $(PACKAGE_OUT)/$(HLS_FILE_NAME).dtbo
+#SHELL_JSON := $(PACKAGE_OUT)/shell.json
+#DTB_FILE := $(PACKAGE_OUT)/$(HLS_FILE_NAME).dtbo
 
 # Output files
 HLS_KERNEL_FILES := $(addprefix $(TEMP_DIR)/,$(HLS_FILES:.cpp=.xo))
