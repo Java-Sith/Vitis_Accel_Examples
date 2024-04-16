@@ -6,7 +6,6 @@ PLATFORM := $(ROOT_DIR)/../kv260_custom.xpfm
 # Setting input file
 HLS_FILES := $(wildcard *.cpp)
 HLS_FILES_NAMES := $(HLS_FILES:.cpp=)
-HLS_FILE_NAME := $(subst $(space),_,$(join $(HLS_FILES_NAMES),_))
 
 # Setting directories
 TEMP_DIR := ./tmp.$(TARGET)
@@ -29,13 +28,14 @@ VPP_PFLAGS :=
 VPP_LDFLAGS :=
 VPP_FLAGS += --save-temps --jobs 6
 
+RMDIR = rm -rf
 
-.PHONY: all clean cleanall fpgabin
+.PHONY: all clean cleanall #fpgabin
 
 all: build
 
 .PHONY: build
-build: check_platform emconfig $(LINK_OUTPUT) $(FPGA_BIN) $(XCL_BIN)
+build: check_platform emconfig $(LINK_OUTPUT) $(XCL_BIN) #$(FPGA_BIN) 
 
 # Rules for creating the HW
 check_platform:
@@ -51,25 +51,24 @@ $(LINK_OUTPUT): $(HLS_KERNEL_FILES)
 	mkdir -p $(BUILD_DIR)
 	v++ -l $(VPP_FLAGS) $(VPP_LDFLAGS) -t $(TARGET) --platform $(PLATFORM) --temp_dir $(TEMP_DIR) -o'$(LINK_OUTPUT)' $^
 
-
 emconfig:$(EMCONFIG_DIR)/emconfig.json
 $(EMCONFIG_DIR)/emconfig.json:
 	emconfigutil --platform $(PLATFORM) --od $(EMCONFIG_DIR)
 
-system.bit: $(LINK_OUTPUT)
-	cp $(TEMP_DIR)/link/int/$@ .
+# system.bit: $(LINK_OUTPUT)
+# 	cp $(TEMP_DIR)/link/int/$@ .
 
-bootgen.bif:
-	echo "all:{system.bit}" > bootgen.bif
+# bootgen.bif:
+# 	echo "all:{system.bit}" > bootgen.bif
 
-$(FPGA_BIN): system.bit bootgen.bif $(SHELL_JSON) $(DTB_FILE)
-	mkdir -p $(PACKAGE_OUT)
-	bootgen -w -arch zynqmp -process_bitstream bin -image bootgen.bif
-	cp system.bit.bin $@
+# $(FPGA_BIN): system.bit bootgen.bif $(SHELL_JSON) $(DTB_FILE)
+# 	mkdir -p $(PACKAGE_OUT)
+# 	bootgen -w -arch zynqmp -process_bitstream bin -image bootgen.bif
+# 	cp system.bit.bin $@
 
 $(XCL_BIN): $(LINK_OUTPUT)
 	mkdir -p $(PACKAGE_OUT)
-	cp $< $@
+	v++ -p $(LINK_OUTPUT) $(VPP_FLAGS) -t $(TARGET) --platform $(PLATFORM) --package.out_dir $(PACKAGE_OUT) -o $(XCL_BIN)
 
 $(SHELL_JSON): $(ROOT_DIR)/../shell.json
 	mkdir -p $(PACKAGE_OUT)
@@ -81,11 +80,11 @@ $(DTB_FILE): $(ROOT_DIR)/../pl.dtbo
 
 # Cleaning rules
 clean:
-	$(RM) -rf $(EXECUTABLE) *.xclbin/{*sw_emu*,*hw_emu*}
-	$(RM) -rf profile_* TempConfig system_estimate.xtxt *.rpt *.csv
-	$(RM) -rf src/*.ll *v++* .Xil emconfig.json dltmp* xmltmp* *.log *.jou *.wcfg *.wdb
+	$(RMDIR) $(EXECUTABLE) *.xclbin/{*sw_emu*,*hw_emu*} 
+	$(RMDIR) profile_* TempConfig system_estimate.xtxt *.rpt *.csv 
+	$(RMDIR) src/*.ll *v++* .Xil emconfig.json dltmp* xmltmp* *.log *.jou *.wcfg *.wdb
 
 cleanall: clean
-	$(RM) -rf build_dir* sd_card*
-	$(RM) -rf package.* tmp.*
-	$(RM) -rf _x* *xclbin.run_summary qemu-memory-_* emulation _vimage pl* start_simulation.sh *.xclbin
+	$(RMDIR) build_dir* sd_card*
+	$(RMDIR) package.* tmp.*
+	$(RMDIR) _x* *xclbin.run_summary qemu-memory-_* emulation _vimage pl* start_simulation.sh *.xclbin
