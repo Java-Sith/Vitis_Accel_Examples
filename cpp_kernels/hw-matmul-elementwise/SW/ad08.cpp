@@ -37,6 +37,26 @@ typedef union {
   uint64_t packet;
 } PacketU;
 
+#include <fstream>
+#include <vector>
+
+// Function to load a tensor from a text file
+void load_tensor(const char *filename, std::vector<DataT>& buffer) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cout << "Error opening file for reading.\n";
+        return;
+    }
+
+    float value;
+    while (file >> value) {
+        DataT data_value = value; // Convert float to DataT
+        buffer.push_back(data_value);
+    }
+
+    file.close();
+}
+
 int main(int argc, char** argv) {
     INIT_PROFILER(cynq_profiler)
     int device_index = 0;
@@ -44,7 +64,7 @@ int main(int argc, char** argv) {
     if (argc != 5) {
         return EXIT_FAILURE;
     }
-    
+
     // Get input size
     std::string binaryFile{argv[1]};
     int a_rows = std::stoi(argv[2]);
@@ -61,6 +81,10 @@ int main(int argc, char** argv) {
     int size_a = a_rows * b_cols;
     int size_b = c_cols * b_cols;
     int size_c = a_rows * c_cols;
+
+    std::vector<DataT> a, b, c;
+    load_tensor("tensor1.txt", a);
+    load_tensor("tensor2.txt", b);
 
     GET_PROFILE_INSTANCE(setup_time, cynq_profiler);
     setup_time->reset();
@@ -82,7 +106,7 @@ int main(int argc, char** argv) {
     auto bo_a_ew = xrt::bo(device, size_em * sizeof(uint16_t), elementwise.group_id(0));
     auto bo_b_ew = xrt::bo(device, size_em * sizeof(uint16_t), elementwise.group_id(1));
     auto bo_c_ew = xrt::bo(device, size_em * sizeof(uint16_t), elementwise.group_id(2));
-    
+
 
     // Map the contents of the buffer object into host memory
     auto bo_a_mm_map = bo_a_mm.map<uint16_t*>();
@@ -92,10 +116,13 @@ int main(int argc, char** argv) {
     auto bo_b_ew_map = bo_b_ew.map<uint16_t*>();
     auto bo_c_ew_map = bo_c_ew.map<uint16_t*>();
 
-    
+
     // Filling data
     std::cout << "Filling Buffers\n";
-    DataT as = 0.02, bs = 0.03;
+    std::copy(a.begin(), a.end(), bo_a_mm_map);
+    std::copy(b.begin(), b.end(), bo_b_mm_map);
+
+    /*DataT as = 0.02, bs = 0.03;
     std::cout << "A: " << std::endl;
     for (int elem = 0; elem < size_a; ++elem) {
         std::cout << as << " ";
@@ -117,7 +144,7 @@ int main(int argc, char** argv) {
             std::cout << std::endl;
             bs = 0.04;
         }
-    }
+    }*/
     bs = DataT{0};
     std::cout << "EW A, B: " << std::endl;
     for (int elem = 0; elem < size_em; ++elem) {
@@ -154,7 +181,7 @@ int main(int argc, char** argv) {
     bo_c_mm.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
     bo_c_ew.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
     //END_PROFILE(kernel_execution);
-    
+
     std::cout << "C: " << std::endl;
     for (int elem = 0; elem < size_c; ++elem) {
         DataT cs;
