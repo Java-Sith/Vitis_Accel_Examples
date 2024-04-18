@@ -30,6 +30,7 @@
 #include "ap_fixed.h"
 
 using DataT = ap_fixed<16, 6>;
+//Float to fixed point in bytes
 
 typedef union {
   uint16_t rvalues[4];
