@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
     }
     std::cout << "B: " << std::endl;
     for (int elem = 0; elem < size_b; ++elem) {
-        std::cout << bs.V << " ";
+        //std::cout << bs.V << " ";
         //std::cout << std::hex << bs.V << " ";
         bo_b_mm_map[elem] = bs.V;
         bs += DataT{0.07};
