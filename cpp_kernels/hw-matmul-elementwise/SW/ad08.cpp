@@ -173,11 +173,8 @@ int main(int argc, char** argv) {
     std::cout << "Waiting to the end\n";
     run_mm.wait();
 
-    // Stop the clock
-    auto end = std::chrono::high_resolution_clock::now();
-
-    // Calculate the duration in milliseconds
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto time = end_time - start_time;
 
     std::cout << "Execution of the kernel: elemwise\n";
     auto run_ew = elementwise(bo_a_ew, bo_b_ew, bo_c_ew, size_em, 0); // 0: add, 1: addrelu, 2: mult
@@ -207,7 +204,7 @@ int main(int argc, char** argv) {
     }
     std::cout << std::endl;
     // Print the duration
-    std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
+    std::cout << "Milliseconds = " << time/std::chrono::milliseconds(1) << " ms " << '\n';
     std::cout << cynq_profiler << std::endl;
     std::cout << "TEST PASSED\n";
     return 0;
