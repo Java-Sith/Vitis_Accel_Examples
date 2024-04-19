@@ -198,7 +198,7 @@ int main(int argc, char** argv) {
     for (int elem = 0; elem < size_c; ++elem) {
         DataT cs;
         cs.V = bo_c_mm_map[elem];
-        std::cout << cs << " ";
+        //std::cout << cs << " ";
         //std::cout << std::hex << cs.V << " ";
         if ((elem + 1) % c_cols == 0) std::cout << std::endl;
     }
