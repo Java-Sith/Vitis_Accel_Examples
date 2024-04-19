@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
 
     DataT as = 0.02, bs = 0.03;
     std::cout << "A: " << std::endl;
-    for (int elem = 0; elem < size_a; ++elem) {
+    for (int elem = 0; elem < 64; ++elem) {
         std::cout << bo_a_mm_map[elem] << " ";
         //bo_a_mm_map[elem] = as.V;
         //std::cout << std::hex << as.V << " ";
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
         }
     }
     std::cout << "B: " << std::endl;
-    for (int elem = 0; elem < size_b; ++elem) {
+    for (int elem = 0; elem < 64; ++elem) {
         std::cout << bo_b_mm_map[elem] << " ";
         //std::cout << std::hex << bs.V << " ";
         //bo_b_mm_map[elem] = bs.V;
@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
     bs = DataT{0};
     std::cout << "EW A, B: " << std::endl;
     for (int elem = 0; elem < size_em; ++elem) {
-        std::cout << bs << " ";
+        //std::cout << bs << " ";
         bo_a_ew_map[elem] = bs.V;
         bo_b_ew_map[elem] = bs.V;
         bs += DataT{0.07};
