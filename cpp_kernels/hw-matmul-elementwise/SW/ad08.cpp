@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
     bo_b_ew.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
     // Start the clock
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start_time = std::chrono::high_resolution_clock::now();
 
     std::cout << "Execution of the kernel: matmul\n";
     auto run_mm = matmul(bo_a_mm, bo_b_mm, bo_c_mm, a_rows, b_cols, c_cols);
