@@ -122,8 +122,8 @@ int main(int argc, char** argv) {
     std::copy(a.begin(), a.end(), bo_a_mm_map);
     std::copy(b.begin(), b.end(), bo_b_mm_map);
 
-    /*DataT as = 0.02, bs = 0.03;
-    std::cout << "A: " << std::endl;
+    DataT as = 0.02, bs = 0.03;
+    /*std::cout << "A: " << std::endl;
     for (int elem = 0; elem < size_a; ++elem) {
         std::cout << as << " ";
         bo_a_mm_map[elem] = as.V;
@@ -165,10 +165,22 @@ int main(int argc, char** argv) {
     bo_a_ew.sync(XCL_BO_SYNC_BO_TO_DEVICE);
     bo_b_ew.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
+    // Start the clock
+    auto start = std::chrono::high_resolution_clock::now();
+
     std::cout << "Execution of the kernel: matmul\n";
     auto run_mm = matmul(bo_a_mm, bo_b_mm, bo_c_mm, a_rows, b_cols, c_cols);
     std::cout << "Waiting to the end\n";
     run_mm.wait();
+
+    // Stop the clock
+    auto end = std::chrono::high_resolution_clock::now();
+
+    // Calculate the duration in milliseconds
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    // Print the duration
+    std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
 
     std::cout << "Execution of the kernel: elemwise\n";
     auto run_ew = elementwise(bo_a_ew, bo_b_ew, bo_c_ew, size_em, 0); // 0: add, 1: addrelu, 2: mult
