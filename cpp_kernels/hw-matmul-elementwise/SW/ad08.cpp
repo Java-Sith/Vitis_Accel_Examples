@@ -119,14 +119,14 @@ int main(int argc, char** argv) {
 
     // Filling data
     std::cout << "Filling Buffers\n";
-    std::copy(a.begin(), a.end(), bo_a_mm_map);
-    std::copy(b.begin(), b.end(), bo_b_mm_map);
+    //std::copy(a.begin(), a.end(), bo_a_mm_map);
+    //std::copy(b.begin(), b.end(), bo_b_mm_map);
 
     DataT as = 0.02, bs = 0.03;
     std::cout << "A: " << std::endl;
-    for (int elem = 0; elem < 64; ++elem) {
-        std::cout << bo_a_mm_map[elem] << " ";
-        //bo_a_mm_map[elem] = as.V;
+    for (int elem = 0; elem < size_a; ++elem) {
+        //std::cout << as.V << " ";
+        bo_a_mm_map[elem] = as.V;
         //std::cout << std::hex << as.V << " ";
         as += DataT{0.03};
         if ((elem + 1) % b_cols == 0) {
@@ -135,10 +135,10 @@ int main(int argc, char** argv) {
         }
     }
     std::cout << "B: " << std::endl;
-    for (int elem = 0; elem < 64; ++elem) {
-        std::cout << bo_b_mm_map[elem] << " ";
+    for (int elem = 0; elem < size_b; ++elem) {
+        std::cout << bs.V << " ";
         //std::cout << std::hex << bs.V << " ";
-        //bo_b_mm_map[elem] = bs.V;
+        bo_b_mm_map[elem] = bs.V;
         bs += DataT{0.07};
         if ((elem + 1) % b_cols == 0) {
             std::cout << std::endl;
