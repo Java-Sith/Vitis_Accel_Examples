@@ -123,10 +123,10 @@ int main(int argc, char** argv) {
     std::copy(b.begin(), b.end(), bo_b_mm_map);
 
     DataT as = 0.02, bs = 0.03;
-    /*std::cout << "A: " << std::endl;
+    std::cout << "A: " << std::endl;
     for (int elem = 0; elem < size_a; ++elem) {
-        std::cout << as << " ";
-        bo_a_mm_map[elem] = as.V;
+        std::cout << bo_a_mm_map[elem] << " ";
+        //bo_a_mm_map[elem] = as.V;
         //std::cout << std::hex << as.V << " ";
         as += DataT{0.03};
         if ((elem + 1) % b_cols == 0) {
@@ -136,15 +136,15 @@ int main(int argc, char** argv) {
     }
     std::cout << "B: " << std::endl;
     for (int elem = 0; elem < size_b; ++elem) {
-        std::cout << bs << " ";
+        std::cout << bo_b_mm_map[elem] << " ";
         //std::cout << std::hex << bs.V << " ";
-        bo_b_mm_map[elem] = bs.V;
+        //bo_b_mm_map[elem] = bs.V;
         bs += DataT{0.07};
         if ((elem + 1) % b_cols == 0) {
             std::cout << std::endl;
             bs = 0.04;
         }
-    }*/
+    }
     bs = DataT{0};
     std::cout << "EW A, B: " << std::endl;
     for (int elem = 0; elem < size_em; ++elem) {
@@ -179,9 +179,6 @@ int main(int argc, char** argv) {
     // Calculate the duration in milliseconds
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-    // Print the duration
-    std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
-
     std::cout << "Execution of the kernel: elemwise\n";
     auto run_ew = elementwise(bo_a_ew, bo_b_ew, bo_c_ew, size_em, 0); // 0: add, 1: addrelu, 2: mult
     std::cout << "Waiting to the end\n";
@@ -200,15 +197,17 @@ int main(int argc, char** argv) {
         cs.V = bo_c_mm_map[elem];
         //std::cout << cs << " ";
         //std::cout << std::hex << cs.V << " ";
-        if ((elem + 1) % c_cols == 0) std::cout << std::endl;
+        //if ((elem + 1) % c_cols == 0) std::cout << std::endl;
     }
     std::cout << "EW C: " << std::endl;
     for (int elem = 0; elem < size_em; ++elem) {
         DataT cs;
         cs.V = bo_c_ew_map[elem];
-        std::cout << cs << " ";
+        //std::cout << cs << " ";
     }
     std::cout << std::endl;
+    // Print the duration
+    std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
     std::cout << cynq_profiler << std::endl;
     std::cout << "TEST PASSED\n";
     return 0;
